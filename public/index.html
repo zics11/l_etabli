@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L'Établi</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20120%20120'%3E%3Cg%20transform='translate(0,-8)'%3E%3Crect%20x='20'%20y='28'%20width='22'%20height='49'%20rx='3'%20fill='%23687F39'/%3E%3Crect%20x='49'%20y='48'%20width='22'%20height='29'%20rx='3'%20fill='%2339627E'/%3E%3Crect%20x='78'%20y='38'%20width='22'%20height='39'%20rx='3'%20fill='%237F5C39'/%3E%3Crect%20x='8'%20y='74'%20width='104'%20height='12'%20rx='2'%20fill='%231E2621'/%3E%3Cpolygon%20points='17,86%2026,86%2021,108%2012,108'%20fill='%231E2621'/%3E%3Cpolygon%20points='94,86%20103,86%20108,108%2099,108'%20fill='%231E2621'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EDEFEA;
+    --ink: #1E2621;
+    --muted: #5E6A61;
+    --rule: #D3D8CF;
+    --track: rgba(30, 38, 33, .10);
+    --line: rgba(30, 38, 33, .18);
+    --card-s: 30%; --card-l: 89%; --fill-s: 38%; --fill-l: 36%;
+    --tick: rgba(30, 38, 33, .16);
+    --fill-en-cours: #6E7F3B;
+    --fill-pause: #C29A3C;
+    --fill-termine: #2F5D46;
+    --danger: #A23B2A;
+    --field: #F7F8F5;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151916; --ink: #E4E8E1; --muted: #9AA59C; --rule: #2E352F;
+      --track: rgba(228, 232, 225, .10); --tick: rgba(228, 232, 225, .14); --line: rgba(228, 232, 225, .18);
+      --card-s: 14%; --card-l: 19%; --fill-s: 38%; --fill-l: 60%;
+      --fill-en-cours: #94A85A; --fill-pause: #C9A24B; --fill-termine: #5FA37F;
+      --danger: #E0745F; --field: #1D221E; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151916; --ink: #E4E8E1; --muted: #9AA59C; --rule: #2E352F;
+    --track: rgba(228, 232, 225, .10); --tick: rgba(228, 232, 225, .14); --line: rgba(228, 232, 225, .18);
+    --card-s: 14%; --card-l: 19%; --fill-s: 38%; --fill-l: 60%;
+    --fill-en-cours: #94A85A; --fill-pause: #C9A24B; --fill-termine: #5FA37F;
+    --danger: #E0745F; --field: #1D221E; color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-optical-sizing: auto;
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+  main { max-width: 42rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  svg { display: block; flex: none; }
+
+  /* En-tête */
+  h1 {
+    margin: 0;
+    font-size: clamp(2.6rem, 9vw, 4rem);
+    font-weight: 800;
+    font-stretch: 75%; font-variation-settings: "wdth" 75;
+    letter-spacing: -0.01em;
+    line-height: .95;
+  }
+  .brand { display: flex; align-items: center; gap: clamp(.6rem, 2vw, 1rem); }
+  .logo { width: clamp(3rem, 11vw, 4.6rem); height: auto; flex: none; }
+  .logo .b1 { fill: hsl(85 var(--fill-s) var(--fill-l)); }
+  .logo .b2 { fill: hsl(205 var(--fill-s) var(--fill-l)); }
+  .logo .b3 { fill: hsl(30 var(--fill-s) var(--fill-l)); }
+  .logo .ink { fill: var(--ink); }
+  .theme { margin-left: auto; }
+  .btn.icon-only.theme:hover { color: var(--ink); border-color: var(--ink); }
+  #summary { margin: .6rem 0 0; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #msg { margin: .5rem 0 0; color: var(--danger); font-size: .95rem; }
+  #loading { color: var(--muted); margin: 1.5rem 0 0; }
+
+  /* Base des contrôles */
+  button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+  input { font: inherit; color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* Un seul style de bouton partout */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+    height: 2rem; padding: 0 .7rem;
+    font-size: .875rem; font-weight: 600; white-space: nowrap;
+    color: var(--ink); border: 1px solid var(--line); border-radius: 6px;
+  }
+  .btn:hover { border-color: var(--ink); }
+  .btn.icon-only { width: 2rem; padding: 0; color: var(--muted); }
+  .btn.icon-only:hover, .btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+  .btn[aria-pressed="true"] { background: var(--fill-pause); border-color: var(--fill-pause); color: #1E2621; }
+  .btn.primary { height: auto; padding: 0 1.1rem; background: var(--ink); border-color: var(--ink); color: var(--bg); font-size: 1rem; font-weight: 700; }
+  .btn.armed { width: auto; padding: 0 .7rem; color: var(--danger); border-color: var(--danger); font-weight: 700; }
+  .btn:disabled { opacity: .4; cursor: default; }
+
+  /* Onglets : même style pour tous */
+  .tabs {
+    display: flex; align-items: flex-end; gap: clamp(1rem, 4vw, 1.75rem);
+    margin-top: 2.25rem; border-bottom: 1px solid var(--rule);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .spacer { flex: 1; }
+  .tab {
+    flex: none; display: inline-flex; align-items: center; gap: .35rem;
+    font-size: 1.05rem; font-weight: 650; white-space: nowrap;
+    color: var(--muted); height: 2.75rem; padding: 0; line-height: 1; margin-bottom: -1px;
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  .count { font-size: .85rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* En-tête de chaque onglet : même hauteur partout */
+  section { margin-top: 1rem; }
+  .panel-head { display: flex; align-items: stretch; gap: .5rem; min-height: 2.75rem; }
+  .panel-head input {
+    flex: 1; min-width: 0;
+    font-size: 1rem;
+    background: var(--field); border: 1px solid var(--rule); border-radius: 8px;
+    padding: .6rem .8rem;
+  }
+  .panel-head input:focus { outline: none; border-color: var(--ink); }
+  .panel-head input:disabled { opacity: .4; }
+  .hint { flex: 1; align-self: center; margin: 0; color: var(--muted); font-size: .95rem; }
+  .panel-head .btn:not(.primary) { align-self: center; }
+  .empty { color: var(--muted); margin: 1.25rem 0 0; }
+
+  /* Une seule structure de ligne pour tout */
+  ul { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+  .row {
+    --h: 85;
+    padding: .9rem 1rem 1rem; border-radius: 10px;
+    background: hsl(var(--h) var(--card-s) var(--card-l));
+  }
+  .row-trash, .row[data-status="pause"] { background: hsl(var(--h) 5% var(--card-l)); }
+  .line { display: flex; align-items: baseline; gap: .75rem; }
+  .sub { align-items: center; flex-wrap: wrap; gap: .5rem .75rem; margin-top: .55rem; }
+
+  .name, .name-ro {
+    flex: 1; min-width: 0;
+    font-size: 1.15rem; font-weight: 600; line-height: 1.3;
+  }
+  .name {
+    background: transparent; border: 0; border-bottom: 1px solid transparent;
+    padding: 0 0 2px; border-radius: 0;
+  }
+  .name:hover { border-bottom-color: var(--line); }
+  .name:focus { outline: none; border-bottom-color: var(--ink); }
+  .name-ro { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .meta { font-size: .95rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pct { color: var(--ink); }
+
+  .desc {
+    display: block; width: 100%; margin-top: .3rem;
+    font: inherit; font-size: .95rem; line-height: 1.45; color: var(--muted);
+    background: transparent; border: 0; border-bottom: 1px solid transparent; border-radius: 0;
+    padding: 0 0 2px; resize: none; overflow: hidden;
+  }
+  .desc::placeholder { color: var(--muted); opacity: .55; }
+  .desc:hover { border-bottom-color: var(--line); }
+  .desc:focus { outline: none; border-bottom-color: var(--ink); color: var(--ink); }
+
+  .next, .note-ro { flex: 1 1 12rem; min-width: 0; font-size: .95rem; }
+  .next {
+    background: transparent; border: 0; border-bottom: 1px dashed var(--line);
+    padding: .2rem 0; border-radius: 0;
+  }
+  .next::placeholder { color: var(--muted); opacity: .8; }
+  .next:focus { outline: none; border-bottom: 1px solid var(--ink); }
+  .note-ro { color: var(--muted); }
+  .actions { display: flex; gap: .4rem; margin-left: auto; }
+
+  /* Barre d'avancement */
+  .bar {
+    --p: 0;
+    --fill: hsl(var(--h) var(--fill-s) var(--fill-l));
+    -webkit-appearance: none; appearance: none;
+    display: block; width: 100%; height: 26px; margin: .6rem 0 0;
+    background: transparent; cursor: ew-resize;
+  }
+  .bar::-webkit-slider-runnable-track {
+    height: 26px; border-radius: 5px;
+    background:
+      repeating-linear-gradient(to right, transparent 0 calc(25% - 1px), var(--tick) calc(25% - 1px) 25%),
+      linear-gradient(to right, var(--fill) 0 calc(var(--p) * 1%), var(--track) calc(var(--p) * 1%) 100%);
+  }
+  .bar::-moz-range-track {
+    height: 26px; border-radius: 5px;
+    background:
+      repeating-linear-gradient(to right, transparent 0 calc(25% - 1px), var(--tick) calc(25% - 1px) 25%),
+      linear-gradient(to right, var(--fill) 0 calc(var(--p) * 1%), var(--track) calc(var(--p) * 1%) 100%);
+  }
+  .bar::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 5px; height: 26px; border-radius: 2px; background: var(--ink);
+  }
+  .bar::-moz-range-thumb { width: 5px; height: 26px; border: 0; border-radius: 2px; background: var(--ink); }
+  .bar:focus { outline: none; }
+  .bar:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+
+  .row[data-status="pause"] .bar { --fill: var(--muted); }
+  .badge-pause {
+    display: none; align-self: center; align-items: center; gap: .3rem; flex: none;
+    font-size: .8rem; font-weight: 700; white-space: nowrap;
+    padding: .15rem .55rem .15rem .45rem; border-radius: 999px;
+    background: var(--fill-pause); color: #1E2621;
+  }
+  .badge-pause svg { stroke-width: 2.6; }
+  .row[data-status="pause"] .badge-pause { display: inline-flex; }
+  .row[data-status="pause"] .name, .row[data-status="pause"] .pct { color: var(--muted); }
+  .row[data-status="termine"] .pause, .row[data-status="termine"] .to-idea, .row[data-status="termine"] .next { display: none; }
+
+  #mode { margin-top: 2.5rem; font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header class="brand">
+    <svg class="logo" viewBox="0 0 120 120" aria-hidden="true">
+      <g transform="translate(0,-8)">
+        <rect class="b1" x="20" y="28" width="22" height="49" rx="3"/>
+        <rect class="b2" x="49" y="48" width="22" height="29" rx="3"/>
+        <rect class="b3" x="78" y="38" width="22" height="39" rx="3"/>
+        <rect class="ink" x="8" y="74" width="104" height="12" rx="2"/>
+        <polygon class="ink" points="17,86 26,86 21,108 12,108"/>
+        <polygon class="ink" points="94,86 103,86 108,108 99,108"/>
+      </g>
+    </svg>
+    <h1>L'Établi</h1>
+    <button id="themeBtn" class="btn icon-only theme" type="button"></button>
+  </header>
+  <p id="summary">&nbsp;</p>
+  <p id="msg" role="status" hidden></p>
+  <p id="loading">Chargement…</p>
+
+  <div class="tabs" role="tablist" aria-label="Vue">
+    <button class="tab" type="button" role="tab" id="tab-proj" aria-controls="panel-proj" aria-selected="true">En cours <span class="count" id="count-proj"></span></button>
+    <button class="tab" type="button" role="tab" id="tab-ideas" aria-controls="panel-ideas" aria-selected="false" tabindex="-1">Idées <span class="count" id="count-ideas"></span></button>
+    <span class="spacer"></span>
+    <button class="tab" type="button" role="tab" id="tab-done" aria-controls="panel-done" aria-selected="false" tabindex="-1">Terminés <span class="count" id="count-done"></span></button>
+    <button class="tab" type="button" role="tab" id="tab-trash" aria-controls="panel-trash" aria-selected="false" tabindex="-1" title="Corbeille">
+      <span data-icon="trash"></span><span class="sr-only">Corbeille</span> <span class="count" id="count-trash"></span>
+    </button>
+  </div>
+
+  <section id="panel-proj" role="tabpanel" aria-labelledby="tab-proj">
+    <div class="panel-head">
+      <input id="newProject" type="text" placeholder="Nouveau projet" aria-label="Nom du nouveau projet" autocomplete="off" disabled>
+      <button id="addProject" class="btn primary" type="button" disabled>Ajouter</button>
+    </div>
+    <ul id="projects"></ul>
+    <p id="projEmpty" class="empty" hidden>Aucun projet en cours.</p>
+  </section>
+
+  <section id="panel-ideas" role="tabpanel" aria-labelledby="tab-ideas" hidden>
+    <div class="panel-head">
+      <input id="newIdea" type="text" placeholder="Nouvelle idée" aria-label="Nom de la nouvelle idée" autocomplete="off" disabled>
+      <button id="addIdea" class="btn primary" type="button" disabled>Ajouter</button>
+    </div>
+    <ul id="ideas"></ul>
+    <p id="ideaEmpty" class="empty" hidden>Aucune idée en réserve.</p>
+  </section>
+
+  <section id="panel-done" role="tabpanel" aria-labelledby="tab-done" hidden>
+    <div class="panel-head">
+      <p class="hint">Un projet arrive ici quand sa barre atteint 100 %.</p>
+    </div>
+    <ul id="done"></ul>
+    <p id="doneEmpty" class="empty" hidden>Rien de terminé pour l'instant.</p>
+  </section>
+
+  <section id="panel-trash" role="tabpanel" aria-labelledby="tab-trash" hidden>
+    <div class="panel-head">
+      <p class="hint">Restaure un élément ou supprime-le définitivement.</p>
+      <button id="emptyTrash" class="btn danger" type="button" hidden>Vider</button>
+    </div>
+    <ul id="trash"></ul>
+    <p id="trashEmpty" class="empty" hidden>La corbeille est vide.</p>
+  </section>
+
+  <p id="mode" hidden></p>
+</main>
+
+<script>
+(() => {
+  const VALID = ["idee", "en-cours", "pause", "termine"];
+  const TABS = ["proj", "ideas", "done", "trash"];
+  const NNBSP = "\u202F";
+
+  // Jeu d'icônes unique, même trait partout
+  const PATHS = {
+    trash: '<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v5.5M14 11v5.5"/>',
+    pause: '<path d="M9 5v14M15 5v14"/>',
+    play: '<path d="M8 5l11 7-11 7z"/>',
+    idea: '<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.8 10.6c.6.6.8 1.3.8 2.4h6c0-1.1.2-1.8.8-2.4A6 6 0 0 0 12 3z"/>',
+    restore: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>',
+    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>'
+  };
+  const icon = (name, size = 16) =>
+    '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + PATHS[name] + '</svg>';
+  const btn = (cls, ic, label) => '<button class="btn ' + cls + '" type="button">' + icon(ic) + '<span>' + label + '</span></button>';
+  const iconBtn = (cls, ic, label) => '<button class="btn icon-only ' + cls + '" type="button" aria-label="' + label + '" title="' + label + '">' + icon(ic) + '</button>';
+
+  const $ = id => document.getElementById(id);
+  document.querySelectorAll("[data-icon]").forEach(el => { el.outerHTML = icon(el.dataset.icon, 18); });
+  $("emptyTrash").innerHTML = icon("trash") + "<span>Vider</span>";
+
+  // Mode sombre : bouton clair/sombre, choix gardé dans ce navigateur
+  const root = document.documentElement;
+  const themeBtn = $("themeBtn");
+  const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  const isDark = () => {
+    const t = root.getAttribute("data-theme");
+    return t === "dark" || t === "light" ? t === "dark" : !!(mq && mq.matches);
+  };
+  function paintTheme() {
+    const d = isDark();
+    const label = d ? "Passer en mode clair" : "Passer en mode sombre";
+    themeBtn.innerHTML = icon(d ? "sun" : "moon");
+    themeBtn.setAttribute("aria-label", label);
+    themeBtn.title = label;
+  }
+  try {
+    const t = localStorage.getItem("etabli-theme");
+    if (t === "dark" || t === "light") root.setAttribute("data-theme", t);
+  } catch (e) {}
+  themeBtn.addEventListener("click", () => {
+    const next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("etabli-theme", next); } catch (e) {}
+    paintTheme();
+  });
+  if (mq && mq.addEventListener) mq.addEventListener("change", paintTheme);
+  if (window.MutationObserver) new MutationObserver(paintTheme).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  paintTheme();
+
+  const lists = { proj: $("projects"), ideas: $("ideas"), done: $("done"), trash: $("trash") };
+  const summaryEl = $("summary"), msgEl = $("msg"), loadingEl = $("loading"), modeEl = $("mode");
+
+  const rows = new Map();        // id -> refs du DOM
+  const pendingVals = new Map(); // "id:champ" -> valeur pas encore enregistrée
+  const timers = new Map();
+  const queues = new Map();
+  let backend = null;
+  let lastList = [];
+
+  // Onglets
+  let activeTab = "proj";
+  function setTab(name, focus) {
+    activeTab = name;
+    for (const t of TABS) {
+      const on = t === name;
+      const tab = $("tab-" + t);
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+      tab.tabIndex = on ? 0 : -1;
+      $("panel-" + t).hidden = !on;
+      if (on && focus) tab.focus();
+    }
+    $("panel-" + name).querySelectorAll(".desc").forEach(autosize);
+    try { localStorage.setItem("mes-projets-onglet", name); } catch (e) {}
+  }
+  for (const t of TABS) {
+    $("tab-" + t).addEventListener("click", () => setTab(t));
+    $("tab-" + t).addEventListener("keydown", e => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const i = TABS.indexOf(activeTab) + (e.key === "ArrowRight" ? 1 : -1);
+      setTab(TABS[(i + TABS.length) % TABS.length], true);
+    });
+  }
+  try { const saved = localStorage.getItem("mes-projets-onglet"); if (TABS.includes(saved)) setTab(saved); } catch (e) {}
+
+  function showError(e) {
+    let text = "Enregistrement impossible. Réessaie dans un instant.";
+    if (e && e.code === "quota_exceeded") text = "Stockage plein : vide la corbeille pour libérer de la place.";
+    msgEl.textContent = text;
+    msgEl.hidden = false;
+    clearTimeout(showError.t);
+    showError.t = setTimeout(() => { msgEl.hidden = true; }, 6000);
+  }
+
+  // Une écriture à la fois par élément
+  function enqueue(id, fn) {
+    const next = (queues.get(id) || Promise.resolve()).then(fn).catch(showError);
+    queues.set(id, next);
+    return next;
+  }
+
+  // Base de données du serveur (server.js)
+  function apiBackend() {
+    const call = (method, id, body) => fetch("/api/items/" + id, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body && JSON.stringify(body)
+    }).then(r => { if (!r.ok) throw new Error(r.status); });
+    return {
+      subscribe(cb) {
+        const es = new EventSource("/api/events");
+        es.onmessage = e => { modeEl.hidden = true; cb(JSON.parse(e.data)); };
+        es.onerror = () => { modeEl.textContent = "Serveur injoignable, nouvelle tentative…"; modeEl.hidden = false; };
+      },
+      add(data) {
+        const id = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        enqueue(id, () => call("PUT", id, data));
+        return id;
+      },
+      update(id, patch) { return enqueue(id, () => call("PUT", id, patch)); },
+      remove(id) { return enqueue(id, () => call("DELETE", id)); }
+    };
+  }
+
+  function flush(id, field) {
+    const key = id + ":" + field;
+    clearTimeout(timers.get(key));
+    timers.delete(key);
+    if (!pendingVals.has(key)) return;
+    const v = pendingVals.get(key);
+    Promise.resolve(backend.update(id, { [field]: v })).finally(() => {
+      if (pendingVals.get(key) === v) pendingVals.delete(key);
+    });
+  }
+
+  function setField(id, field, value, delay) {
+    const key = id + ":" + field;
+    pendingVals.set(key, value);
+    clearTimeout(timers.get(key));
+    timers.set(key, setTimeout(() => flush(id, field), delay));
+  }
+
+  // Plusieurs champs d'un coup, enregistrés tout de suite
+  function commit(id, obj) {
+    const entries = Object.entries(obj);
+    for (const [f, v] of entries) {
+      const key = id + ":" + f;
+      clearTimeout(timers.get(key)); timers.delete(key);
+      pendingVals.set(key, v);
+    }
+    Promise.resolve(backend.update(id, obj)).finally(() => {
+      for (const [f, v] of entries) { const key = id + ":" + f; if (pendingVals.get(key) === v) pendingVals.delete(key); }
+    });
+  }
+
+  function flushAll(id) {
+    for (const key of [...timers.keys()]) if (key.startsWith(id + ":")) flush(id, key.slice(id.length + 1));
+  }
+
+  function dropPending(id) {
+    for (const key of [...pendingVals.keys()]) {
+      if (key.startsWith(id + ":")) { clearTimeout(timers.get(key)); timers.delete(key); pendingVals.delete(key); }
+    }
+  }
+
+  function eff(p, field, fallback) {
+    const key = p.id + ":" + field;
+    if (pendingVals.has(key)) return pendingVals.get(key);
+    return p[field] !== undefined ? p[field] : fallback;
+  }
+
+  // Confirmation en deux clics, même comportement partout
+  function confirmClick(b, armedLabel, action) {
+    let t = null, orig = null;
+    const disarm = () => { b.classList.remove("armed"); b.innerHTML = orig; };
+    b.addEventListener("click", () => {
+      if (!b.classList.contains("armed")) {
+        orig = b.innerHTML;
+        b.classList.add("armed");
+        b.textContent = armedLabel;
+        t = setTimeout(disarm, 3000);
+        return;
+      }
+      clearTimeout(t); disarm(); action();
+    });
+  }
+
+  function paint(r) {
+    if (r.kind !== "project") return;
+    const p = Number(r.bar.value);
+    r.el.dataset.status = r.paused ? "pause" : (p >= 100 ? "termine" : "en-cours");
+    r.pause.innerHTML = icon(r.paused ? "play" : "pause") + "<span>" + (r.paused ? "Reprendre" : "Pause") + "</span>";
+    r.pause.setAttribute("aria-pressed", r.paused ? "true" : "false");
+    r.bar.style.setProperty("--p", p);
+    r.pct.textContent = p + NNBSP + "%";
+    const label = r.name.value.trim() || "projet sans nom";
+    r.bar.setAttribute("aria-label", "Avancement de " + label);
+    r.bar.setAttribute("aria-valuetext", p + " %");
+  }
+
+  // Une seule fabrique de ligne pour les projets, les idées et la corbeille
+  function makeRow(id, kind) {
+    const el = document.createElement("li");
+    el.className = "row row-" + kind;
+    const editable = kind !== "trash";
+    let html = '<div class="line">';
+    html += editable
+      ? '<input class="name" type="text" aria-label="Nom" placeholder="Sans nom" autocomplete="off">'
+      : '<span class="name-ro"></span>';
+    if (kind === "project") html += '<span class="badge-pause">' + icon("pause", 13) + 'En pause</span><span class="meta pct" aria-hidden="true"></span>';
+    if (kind === "trash") html += '<span class="meta kind"></span>';
+    html += '</div>';
+    if (editable) html += '<textarea class="desc" rows="1" placeholder="Description…" aria-label="Description"></textarea>';
+    if (kind === "project") html += '<input class="bar" type="range" min="0" max="100" step="5" value="0">';
+    html += '<div class="line sub">';
+    if (kind === "project") html += '<input class="next" type="text" placeholder="Prochaine étape…" aria-label="Prochaine étape" autocomplete="off">';
+    if (kind === "trash") html += '<span class="note-ro"></span>';
+    html += '<div class="actions">';
+    if (kind === "project") html += '<button class="btn pause" type="button" aria-pressed="false"></button>' + btn("to-idea", "idea", "En idée");
+    if (kind === "idea") html += btn("start", "play", "Démarrer");
+    if (kind === "trash") html += btn("restore", "restore", "Restaurer") + iconBtn("forever", "trash", "Supprimer définitivement");
+    else html += iconBtn("del", "trash", "Mettre à la corbeille");
+    html += '</div></div>';
+    el.innerHTML = html;
+
+    const q = s => el.querySelector(s);
+    const r = {
+      kind, el, paused: false,
+      name: q(".name"), nameRo: q(".name-ro"), pct: q(".pct"), kindEl: q(".kind"),
+      bar: q(".bar"), next: q(".next"), noteRo: q(".note-ro"), desc: q(".desc"),
+      pause: q(".pause"), toIdea: q(".to-idea"), start: q(".start"),
+      del: q(".del"), restore: q(".restore"), forever: q(".forever")
+    };
+
+    if (editable) {
+      for (const [input, field] of [[r.name, "name"], [r.desc, "desc"], [r.next, "next"]].filter(([i]) => i)) {
+        input.addEventListener("input", () => { paint(r); if (input === r.desc) autosize(input); setField(id, field, input.value, 700); });
+        input.addEventListener("blur", () => flush(id, field));
+        input.addEventListener("keydown", e => { if (e.key === "Enter" && input.tagName === "INPUT") input.blur(); });
+      }
+      r.del.addEventListener("click", () => {
+        flushAll(id);
+        commit(id, { deleted: true, deletedAt: Date.now() });
+        render();
+      });
+    }
+
+    if (kind === "project") {
+      // Bouger la barre d'un projet en pause le relance
+      r.bar.addEventListener("input", () => {
+        if (r.paused) { r.paused = false; r.unpausing = true; }
+        paint(r); updateSummary();
+      });
+      r.bar.addEventListener("change", () => {
+        if (r.unpausing) { r.unpausing = false; setField(id, "status", "en-cours", 0); }
+        setField(id, "progress", Number(r.bar.value), 400);
+      });
+      r.pause.addEventListener("click", () => {
+        r.paused = !r.paused;
+        paint(r);
+        setField(id, "status", r.paused ? "pause" : "en-cours", 0);
+        render();
+      });
+      r.toIdea.addEventListener("click", () => { setField(id, "status", "idee", 0); render(); });
+    }
+
+    if (kind === "idea") {
+      r.start.addEventListener("click", () => {
+        setField(id, "status", "en-cours", 0);
+        render();
+        setTab("proj");
+        const nr = rows.get(id);
+        if (nr && nr.bar) { nr.el.scrollIntoView({ block: "nearest", behavior: "smooth" }); nr.bar.focus({ preventScroll: true }); }
+      });
+    }
+
+    if (kind === "trash") {
+      r.restore.addEventListener("click", () => { commit(id, { deleted: false }); render(); });
+      confirmClick(r.forever, "Confirmer", () => { dropPending(id); backend.remove(id); });
+    }
+    return r;
+  }
+
+  // La description s'agrandit avec son contenu
+  function autosize(t) {
+    if (!t) return;
+    if (t.offsetParent === null) { t.style.height = ""; return; }
+    t.style.height = "auto";
+    t.style.height = t.scrollHeight + "px";
+  }
+  let resizeT = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => document.querySelectorAll(".desc").forEach(autosize), 150);
+  });
+
+  // Une couleur par projet, gardée d'une fois sur l'autre
+  const HUES = [85, 205, 30, 265, 150, 12, 180, 335];
+  function hashHue(id) {
+    let h = 0;
+    for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) | 0;
+    return HUES[Math.abs(h) % HUES.length];
+  }
+  function hueOf(p) {
+    const h = eff(p, "hue", undefined);
+    return typeof h === "number" ? h : hashHue(p.id);
+  }
+  function assignHues(live) {
+    const used = new Map(HUES.map(h => [h, 0]));
+    for (const x of live) {
+      const h = eff(x.p, "hue", undefined);
+      if (used.has(h)) used.set(h, used.get(h) + 1);
+    }
+    const missing = live.filter(x => typeof eff(x.p, "hue", undefined) !== "number")
+      .sort((a, b) => (a.p.created || 0) - (b.p.created || 0));
+    for (const x of missing) {
+      let best = HUES[0];
+      for (const h of HUES) if (used.get(h) < used.get(best)) best = h;
+      used.set(best, used.get(best) + 1);
+      const id = x.p.id, key = id + ":hue";
+      pendingVals.set(key, best);
+      queueMicrotask(() => {
+        Promise.resolve(backend.update(id, { hue: best })).finally(() => {
+          if (pendingVals.get(key) === best) pendingVals.delete(key);
+        });
+      });
+    }
+  }
+
+  const fmtDate = ts => {
+    try { return new Date(ts).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch (e) { return ""; }
+  };
+
+  function syncRow(r, p) {
+    r.el.style.setProperty("--h", hueOf(p));
+    if (r.kind === "trash") {
+      r.nameRo.textContent = p.name || "Sans nom";
+      r.kindEl.textContent = eff(p, "status", "idee") === "idee" ? "Idée" : "Projet";
+      const ts = eff(p, "deletedAt", 0);
+      r.noteRo.textContent = ts ? "Mis à la corbeille le " + fmtDate(ts) : "Dans la corbeille";
+      return;
+    }
+    const put = (el, field, val) => {
+      if (!el) return;
+      if (pendingVals.has(p.id + ":" + field)) return;
+      if (document.activeElement === el) return;
+      if (el.value !== String(val)) el.value = val;
+    };
+    put(r.name, "name", p.name || "");
+    put(r.next, "next", p.next || "");
+    put(r.desc, "desc", p.desc || "");
+    put(r.bar, "progress", Number.isFinite(p.progress) ? p.progress : 0);
+    if (r.kind === "project" && !r.unpausing) r.paused = eff(p, "status", "en-cours") === "pause";
+    paint(r);
+  }
+
+  function place(arr, where, kind, seen) {
+    const ul = lists[where];
+    arr.forEach(({ p }, i) => {
+      seen.add(p.id);
+      let r = rows.get(p.id);
+      if (r && r.kind !== kind) { r.el.remove(); rows.delete(p.id); r = null; }
+      if (!r) { r = makeRow(p.id, kind); rows.set(p.id, r); }
+      r.where = where;
+      syncRow(r, p);
+      if (ul.children[i] !== r.el) {
+        const f = r.el.contains(document.activeElement) ? document.activeElement : null;
+        ul.insertBefore(r.el, ul.children[i] || null);
+        if (f && document.activeElement !== f) f.focus({ preventScroll: true });
+      }
+      autosize(r.desc);
+    });
+  }
+
+  function render(list) {
+    if (list) lastList = list.filter(Boolean);
+    const items = lastList.map(p => {
+      const s = eff(p, "status", "idee");
+      return {
+        p,
+        status: VALID.includes(s) ? s : "idee",
+        deleted: !!eff(p, "deleted", false),
+        progress: Number(eff(p, "progress", 0)) || 0
+      };
+    });
+    const byCreated = (a, b) => (a.p.created || 0) - (b.p.created || 0);
+    const live = items.filter(x => !x.deleted);
+    assignHues(live);
+    const projs = live.filter(x => x.status !== "idee");
+    const active = projs.filter(x => x.progress < 100)
+      .sort((a, b) => (b.progress - a.progress) || byCreated(a, b));
+    const done = projs.filter(x => x.progress >= 100).sort(byCreated);
+    const ideas = live.filter(x => x.status === "idee").sort(byCreated);
+    const trash = items.filter(x => x.deleted)
+      .sort((a, b) => (eff(b.p, "deletedAt", 0) || 0) - (eff(a.p, "deletedAt", 0) || 0));
+
+    // Position avant reclassement, pour animer le déplacement
+    const before = new Map();
+    for (const [id, r] of rows) if (r.el.offsetParent) before.set(id, r.el.getBoundingClientRect().top);
+
+    const seen = new Set();
+    place(active, "proj", "project", seen);
+    place(done, "done", "project", seen);
+    place(ideas, "ideas", "idea", seen);
+    place(trash, "trash", "trash", seen);
+    for (const [id, r] of rows) {
+      if (!seen.has(id)) { r.el.remove(); rows.delete(id); }
+    }
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) {
+      for (const [id, top] of before) {
+        const r = rows.get(id);
+        if (!r || !r.el.offsetParent || !r.el.animate) continue;
+        const dy = top - r.el.getBoundingClientRect().top;
+        if (Math.abs(dy) > 1) r.el.animate([{ transform: "translateY(" + dy + "px)" }, { transform: "none" }], { duration: 280, easing: "ease-out" });
+      }
+    }
+    $("projEmpty").hidden = active.length > 0;
+    $("ideaEmpty").hidden = ideas.length > 0;
+    $("doneEmpty").hidden = done.length > 0;
+    $("trashEmpty").hidden = trash.length > 0;
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const counts = { proj: 0, ideas: 0, done: 0, trash: 0 };
+    let sum = 0;
+    for (const r of rows.values()) {
+      counts[r.where]++;
+      if (r.where === "proj") sum += Number(r.bar.value);
+    }
+    for (const k of TABS) $("count-" + k).textContent = counts[k] || "";
+    $("emptyTrash").hidden = counts.trash === 0;
+    summaryEl.textContent = counts.proj
+      ? "Avancement moyen des projets en cours : " + Math.round(sum / counts.proj) + NNBSP + "%."
+      : "Aucun projet en cours.";
+  }
+
+  confirmClick($("emptyTrash"), "Tout supprimer ?", () => {
+    for (const [id, r] of rows) if (r.kind === "trash") { dropPending(id); backend.remove(id); }
+  });
+
+  function addFrom(input, status) {
+    const name = input.value.trim();
+    if (!name || !backend) { input.focus(); return; }
+    backend.add({ name, progress: 0, status, next: "", deleted: false, created: Date.now() });
+    input.value = "";
+    input.focus();
+  }
+  $("addProject").addEventListener("click", () => addFrom($("newProject"), "en-cours"));
+  $("newProject").addEventListener("keydown", e => { if (e.key === "Enter") addFrom($("newProject"), "en-cours"); });
+  $("addIdea").addEventListener("click", () => addFrom($("newIdea"), "idee"));
+  $("newIdea").addEventListener("keydown", e => { if (e.key === "Enter") addFrom($("newIdea"), "idee"); });
+
+  backend = apiBackend();
+  backend.subscribe(list => {
+    loadingEl.hidden = true;
+    for (const id of ["newProject", "addProject", "newIdea", "addIdea"]) $(id).disabled = false;
+    render(list);
+  });
+})();
+</script>
+</body>
+</html>

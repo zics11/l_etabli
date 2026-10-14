@@ -1,0 +1,8 @@
+{
+  "name": "l-etabli",
+  "private": true,
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js"
+  },
+  "engines": { "node": ">=22.5" }
+}
